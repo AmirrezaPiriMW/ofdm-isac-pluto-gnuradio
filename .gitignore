@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+# recordings and generated signals (large)
+captures/
+tx/*.sigmf-*
+*.sigmf-data
+# outputs of the replay flowgraph
+grc/replay_doppler.f32
+grc/*.cf32
+results/captures/

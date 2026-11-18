@@ -1,0 +1,128 @@
+options:
+  parameters:
+    id: pluto_tx_only
+    title: OFDM ISAC TX node (PlutoSDR)
+    author: Amirreza Piri
+    description: 'TX node: plays the cyclic OFDM buffer until Enter is pressed.'
+    generate_options: no_gui
+    output_language: python
+    run: 'True'
+    run_options: prompt
+    window_size: (1400, 900)
+    category: '[GRC Hier Blocks]'
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: imports
+  id: import
+  parameters:
+    imports: import os
+  states:
+    coordinate:
+    - 8
+    - 100
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    value: '4000000'
+  states:
+    coordinate:
+    - 200
+    - 12
+    rotation: 0
+    state: enabled
+- name: fc
+  id: variable
+  parameters:
+    value: '2450000000'
+  states:
+    coordinate:
+    - 300
+    - 12
+    rotation: 0
+    state: enabled
+- name: rf_bw
+  id: variable
+  parameters:
+    value: '4000000'
+  states:
+    coordinate:
+    - 400
+    - 12
+    rotation: 0
+    state: enabled
+- name: tx_atten
+  id: variable
+  parameters:
+    value: '10.0'
+  states:
+    coordinate:
+    - 500
+    - 12
+    rotation: 0
+    state: enabled
+- name: tx_file
+  id: variable
+  parameters:
+    value: '''../tx/indoor_tx.cf32'''
+  states:
+    coordinate:
+    - 600
+    - 12
+    rotation: 0
+    state: enabled
+- name: tx_buffer_len
+  id: variable
+  parameters:
+    value: os.path.getsize(tx_file) // 8 if os.path.exists(tx_file) else 163840
+  states:
+    coordinate:
+    - 760
+    - 12
+    rotation: 0
+    state: enabled
+- name: tx_source
+  id: blocks_file_source
+  parameters:
+    file: tx_file
+    type: complex
+    repeat: 'True'
+  states:
+    coordinate:
+    - 16
+    - 200
+    rotation: 0
+    state: enabled
+- name: pluto_sink
+  id: iio_pluto_sink
+  parameters:
+    type: fc32
+    uri: ''''''
+    frequency: fc
+    samplerate: samp_rate
+    buffer_size: tx_buffer_len
+    cyclic: 'True'
+    attenuation1: tx_atten
+    bandwidth: rf_bw
+    filter_source: '''Auto'''
+    len_tag_key: ''''''
+  states:
+    coordinate:
+    - 260
+    - 180
+    rotation: 0
+    state: enabled
+connections:
+- - tx_source
+  - '0'
+  - pluto_sink
+  - '0'
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

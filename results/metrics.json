@@ -1,0 +1,377 @@
+{
+  "numerology": {
+    "indoor": {
+      "fc": 2450000000.0,
+      "fs": 4000000.0,
+      "nfft": 256,
+      "ncp": 64,
+      "n_used": 200,
+      "df": 15625.0,
+      "t_sym": 8e-05,
+      "sym_rate": 12499.999999999998,
+      "occupied_bw": 3140625.0,
+      "range_sum_resolution": 95.45630503482587,
+      "max_excess_range_cp": 4197.094412,
+      "unambiguous_excess_range": 19186.717312,
+      "n_sym_cpi": 13106,
+      "t_cpi": 1.04848,
+      "doppler_resolution": 0.9537616358919578,
+      "doppler_max": 6249.999999999999,
+      "wavelength": 0.12236426857142857,
+      "velocity_resolution": 0.1167063449674086,
+      "velocity_max": 764.7766785714284,
+      "usb_load_mbyte_s": 16.0,
+      "thermal_noise_dbm": -101.95458728094849,
+      "processing_gain_db": 64.18500159284102,
+      "buffer_len": 163840,
+      "buffer_rate": 24.4140625,
+      "papr_db": 11.103212356567383
+    },
+    "outdoor_uav": {
+      "fc": 2450000000.0,
+      "fs": 30720000.0,
+      "nfft": 1024,
+      "ncp": 128,
+      "n_used": 800,
+      "df": 30000.0,
+      "t_sym": 3.75e-05,
+      "sym_rate": 26666.666666666668,
+      "occupied_bw": 24030000.0,
+      "range_sum_resolution": 12.47575771951727,
+      "max_excess_range_cp": 1171.0642890625,
+      "unambiguous_excess_range": 9993.081933333333,
+      "n_sym_cpi": 3639,
+      "t_cpi": 0.1364625,
+      "doppler_resolution": 7.3280205184574525,
+      "doppler_max": 13333.333333333334,
+      "wavelength": 0.12236426857142857,
+      "velocity_resolution": 0.8966878708174669,
+      "velocity_max": 1631.523580952381,
+      "usb_load_mbyte_s": 122.88,
+      "thermal_noise_dbm": -93.10097508063336,
+      "processing_gain_db": 64.6407204257818,
+      "buffer_len": 589824,
+      "buffer_rate": 52.083333333333336,
+      "papr_db": 10.854990005493164
+    }
+  },
+  "indoor": {
+    "link_budget": {
+      "direct_path_dbm": -75.27230473573327,
+      "noise_dbm": -101.95458728094849,
+      "targets": {
+        "walker": {
+          "total_dbm": -89.64319220500127,
+          "snr_per_sample_db": 12.311395075947217,
+          "snr_after_processing_db": 76.49639666878824,
+          "below_direct_path_db": 14.370887469267988
+        },
+        "fan": {
+          "total_dbm": -91.67659758553651,
+          "snr_per_sample_db": 10.277989695411975,
+          "snr_after_processing_db": 74.462991288253,
+          "below_direct_path_db": 16.404292849803237
+        },
+        "room": {
+          "total_dbm": -66.22005522757811,
+          "snr_per_sample_db": 35.73453205337037,
+          "snr_after_processing_db": 99.91953364621139,
+          "below_direct_path_db": -9.052249508155164
+        }
+      }
+    },
+    "adc_peak_dbfs": -3.2792568902001333,
+    "sync_metric": 0.9962096512183001,
+    "ber": 0.0,
+    "evm_db": -25.01457865933665,
+    "n_bits": 5115600,
+    "walker_truth": {
+      "excess_range_m": 8.546495075027332,
+      "range_sum_rate_mps": -2.2452727274928614,
+      "doppler_hz": 18.349087962571463
+    },
+    "walker": {
+      "detected": true,
+      "excess_range_m": 8.436173972624712,
+      "doppler_hz": 18.330959906344248,
+      "range_sum_rate_mps": -2.2430545011519967,
+      "snr_db": 54.79351017522347,
+      "excess_range_error_m": -0.1103211024026205,
+      "doppler_error_hz": -0.018128056227215694,
+      "range_sum_rate_error_mps": 0.0022182263408647707,
+      "doppler_error_cells": -0.01900690439311111
+    },
+    "fan_blade_rate_true_hz": 60.0,
+    "fan_blade_rate_est_hz": 60.0,
+    "n_detections": 26,
+    "t_sim_s": 2.9133718013763428,
+    "t_proc_s": 2.8602168560028076
+  },
+  "outdoor": {
+    "link_budget": {
+      "direct_path_dbm": -66.23110490917402,
+      "noise_dbm": -93.10097508063336,
+      "targets": {
+        "uav": {
+          "total_dbm": -126.84834001864081,
+          "snr_per_sample_db": -33.74736493800745,
+          "snr_after_processing_db": 30.893355487774343,
+          "below_direct_path_db": 60.61723510946678
+        },
+        "person": {
+          "total_dbm": -102.68452910576616,
+          "snr_per_sample_db": -9.583554025132798,
+          "snr_after_processing_db": 55.057166400648995,
+          "below_direct_path_db": 36.453424196592145
+        },
+        "clutter": {
+          "total_dbm": -95.14135602666782,
+          "snr_per_sample_db": -2.0403809460344604,
+          "snr_after_processing_db": 62.60033947974733,
+          "below_direct_path_db": 28.910251117493793
+        }
+      }
+    },
+    "adc_peak_dbfs": -4.191657567148539,
+    "sync_metric": 0.9971030141148093,
+    "ber": 0.0,
+    "evm_db": -24.906900528834658,
+    "n_bits": 5644800,
+    "uav_truth": {
+      "excess_range_m": 178.88819024616288,
+      "range_sum_rate_mps": -12.645688024743137,
+      "doppler_hz": 103.34461336122301,
+      "blade_rates_hz": [
+        193.33333333333334,
+        203.33333333333334,
+        198.33333333333334,
+        208.33333333333334
+      ]
+    },
+    "uav": {
+      "detected": true,
+      "excess_range_m": 178.67561203893243,
+      "doppler_hz": 102.94576911003995,
+      "range_sum_rate_mps": -12.596883739673203,
+      "snr_db": 27.267306039258084,
+      "excess_range_error_m": -0.2125782072304503,
+      "doppler_error_hz": -0.3988442511830641,
+      "range_sum_rate_error_mps": 0.048804285069934394,
+      "doppler_error_cells": -0.054427283627068876
+    },
+    "uav_genie_reference": {
+      "detected": true,
+      "excess_range_m": 178.67561203893243,
+      "doppler_hz": 102.94576911003995,
+      "range_sum_rate_mps": -12.596883739673203,
+      "snr_db": 27.267306039258084,
+      "excess_range_error_m": -0.2125782072304503,
+      "doppler_error_hz": -0.3988442511830641,
+      "range_sum_rate_error_mps": 0.048804285069934394,
+      "doppler_error_cells": -0.054427283627068876
+    },
+    "person_truth": {
+      "excess_range_m": 93.3718890397736,
+      "range_sum_rate_mps": -0.4495428188295555,
+      "doppler_hz": 3.673807918584833
+    },
+    "person": {
+      "detected": true,
+      "excess_range_m": 93.37249402596612,
+      "doppler_hz": 6.967922089775036,
+      "range_sum_rate_mps": -0.8526246899780223,
+      "snr_db": 48.09886184175265,
+      "excess_range_error_m": 0.0006049861925134792,
+      "doppler_error_hz": 3.294114171190203,
+      "range_sum_rate_error_mps": -0.40308187114846683,
+      "doppler_error_cells": 0.449523055086043
+    },
+    "uav_blade_rate_est_hz": 201.0,
+    "uav_blade_rates_true_hz": [
+      193.33333333333334,
+      203.33333333333334,
+      198.33333333333334,
+      208.33333333333334
+    ],
+    "n_detections": 7,
+    "t_sim_s": 6.769676685333252,
+    "t_proc_s": 4.445396423339844
+  },
+  "two_device": {
+    "cfo_true_hz": 4900.0,
+    "sfo_ppm": 2.0,
+    "linewidth_hz": 0.01,
+    "walker_truth": {
+      "excess_range_m": 8.476431334638157,
+      "range_sum_rate_mps": -2.243397889320054,
+      "doppler_hz": 18.333766184451953
+    },
+    "cases": {
+      "one Pluto (shared clock)": {
+        "cfo_est_hz": 0.0,
+        "ber": 0.0,
+        "evm_db": -30.619318732015763,
+        "sync_metric": 0.9960465110484918,
+        "walker": {
+          "detected": true,
+          "excess_range_m": 8.355686564896793,
+          "doppler_hz": 18.319297046043808,
+          "range_sum_rate_mps": -2.2416273837818825,
+          "snr_db": 57.24445728352029,
+          "excess_range_error_m": -0.12074476974136417,
+          "doppler_error_hz": -0.014469138408145454,
+          "range_sum_rate_error_mps": 0.0017705055381713741,
+          "doppler_error_cells": -0.015170602238172346
+        },
+        "walker_is_strongest": true,
+        "n_detections": 7,
+        "ref_info": {}
+      },
+      "two Plutos, no correction": {
+        "cfo_est_hz": 0.0,
+        "ber": 0.5030643521776527,
+        "evm_db": 4.672045171574629,
+        "sync_metric": 0.6581408427163274,
+        "walker": {
+          "detected": false
+        },
+        "walker_is_strongest": false,
+        "n_detections": 20,
+        "ref_info": {}
+      },
+      "two Plutos, CFO correction only": {
+        "cfo_est_hz": 4900.0071422906785,
+        "ber": 0.0,
+        "evm_db": -26.98374695584998,
+        "sync_metric": 0.853422377731864,
+        "walker": {
+          "detected": true,
+          "excess_range_m": 81.44716290044093,
+          "doppler_hz": 18.454753584720443,
+          "range_sum_rate_mps": -2.2582024240602663,
+          "snr_db": 19.24392477483093,
+          "excess_range_error_m": 72.97073156580277,
+          "doppler_error_hz": 0.12098740026848986,
+          "range_sum_rate_error_mps": -0.014804534740212372,
+          "doppler_error_cells": 0.12685286943350627
+        },
+        "walker_is_strongest": true,
+        "n_detections": 1,
+        "ref_info": {}
+      },
+      "two Plutos, CFO + direct-path referencing": {
+        "cfo_est_hz": 4900.0071422906785,
+        "ber": 0.0,
+        "evm_db": -26.98374695584998,
+        "sync_metric": 0.853422377731864,
+        "walker": {
+          "detected": true,
+          "excess_range_m": 8.139844030522028,
+          "doppler_hz": 18.310338466695494,
+          "range_sum_rate_mps": -2.240531173772487,
+          "snr_db": 27.953848725399787,
+          "excess_range_error_m": -0.33658730411612936,
+          "doppler_error_hz": -0.023427717756458577,
+          "range_sum_rate_error_mps": 0.0028667155475670114,
+          "doppler_error_cells": -0.02456349351329169
+        },
+        "walker_is_strongest": true,
+        "n_detections": 4,
+        "ref_info": {
+          "delay_drift_s_per_symbol": 1.5998452584019293e-10,
+          "phase_drift_rad": -0.08907199829599444,
+          "residual_cfo_hz": 0.003324969188260295
+        }
+      }
+    },
+    "sensitivity": {
+      "linewidth_hz": [
+        0.001,
+        0.01,
+        0.1,
+        0.3,
+        1.0,
+        3.0
+      ],
+      "smooth_s": [
+        0.1,
+        0.02
+      ],
+      "walker_snr_db": [
+        [
+          38.336502112243714,
+          30.633382199077936,
+          20.433036102434052,
+          16.744330761607667,
+          NaN,
+          NaN
+        ],
+        [
+          29.757609974520882,
+          27.58173561577559,
+          20.96872099425179,
+          19.20248232017663,
+          16.61413424396604,
+          14.155612247812975
+        ]
+      ]
+    }
+  },
+  "monte_carlo_uav": {
+    "distance_m": [
+      50,
+      100,
+      150,
+      200,
+      250,
+      300,
+      400
+    ],
+    "trials": 12,
+    "pd": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      0.25,
+      0.08333333333333333,
+      0.0
+    ],
+    "rmse_excess_range_m": [
+      0.05739744881338355,
+      0.34573332955750224,
+      0.8057560322863456,
+      1.4959652191442776,
+      2.062851494366833,
+      1.0523026894267105,
+      null
+    ],
+    "rmse_doppler_hz": [
+      1.7125398204604725,
+      0.6756881801991848,
+      0.5149952837897828,
+      0.9242144351761694,
+      1.8439616276604602,
+      0.2837394242421851,
+      null
+    ],
+    "median_snr_db": [
+      40.783237340061206,
+      26.102985795746974,
+      18.540987294137047,
+      13.733443294717624,
+      12.229538664384476,
+      12.076224987571846,
+      null
+    ],
+    "predicted_snr_db": [
+      41.21859093869354,
+      29.9791019679242,
+      22.94041618392754,
+      17.94526437659411,
+      14.07029466732115,
+      10.903801958783461,
+      5.907197489950093
+    ]
+  }
+}

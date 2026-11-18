@@ -1,0 +1,494 @@
+options:
+  parameters:
+    id: pluto_isac_live
+    title: OFDM ISAC live (PlutoSDR)
+    author: Amirreza Piri
+    description: 'One PlutoSDR, bistatic OFDM ISAC: TX1 plays the cyclic OFDM buffer, RX1 feeds the live radar block (Doppler
+      display + detections) and the comm decoder.'
+    generate_options: qt_gui
+    output_language: python
+    run: 'True'
+    run_options: prompt
+    window_size: (1400, 900)
+    category: '[GRC Hier Blocks]'
+  states:
+    coordinate:
+    - 8
+    - 8
+    rotation: 0
+    state: enabled
+blocks:
+- name: samp_rate
+  id: variable
+  parameters:
+    value: '4000000'
+  states:
+    coordinate:
+    - 200
+    - 12
+    rotation: 0
+    state: enabled
+- name: fc
+  id: variable
+  parameters:
+    value: '2450000000'
+  states:
+    coordinate:
+    - 300
+    - 12
+    rotation: 0
+    state: enabled
+- name: rf_bw
+  id: variable
+  parameters:
+    value: '4000000'
+  states:
+    coordinate:
+    - 400
+    - 12
+    rotation: 0
+    state: enabled
+- name: cfg_path
+  id: variable
+  parameters:
+    value: '''../config/indoor.yaml'''
+  states:
+    coordinate:
+    - 500
+    - 12
+    rotation: 0
+    state: enabled
+- name: tx_file
+  id: variable
+  parameters:
+    value: '''../tx/indoor_tx.cf32'''
+  states:
+    coordinate:
+    - 650
+    - 12
+    rotation: 0
+    state: enabled
+- name: imports
+  id: import
+  parameters:
+    imports: import os
+  states:
+    coordinate:
+    - 8
+    - 100
+    rotation: 0
+    state: enabled
+- name: tx_buffer_len
+  id: variable
+  parameters:
+    value: os.path.getsize(tx_file) // 8 if os.path.exists(tx_file) else 163840
+  states:
+    coordinate:
+    - 800
+    - 12
+    rotation: 0
+    state: enabled
+- name: cpi
+  id: variable
+  parameters:
+    value: '1048576'
+  states:
+    coordinate:
+    - 950
+    - 12
+    rotation: 0
+    state: enabled
+- name: max_doppler
+  id: variable
+  parameters:
+    value: '300.0'
+  states:
+    coordinate:
+    - 1050
+    - 12
+    rotation: 0
+    state: enabled
+- name: n_bins
+  id: variable
+  parameters:
+    value: '512'
+  states:
+    coordinate:
+    - 1170
+    - 12
+    rotation: 0
+    state: enabled
+- name: rx_gain
+  id: variable_qtgui_range
+  parameters:
+    label: '''RX gain [dB]'''
+    rangeType: float
+    value: '30'
+    start: '-3'
+    stop: '71'
+    step: '1'
+    widget: counter_slider
+    gui_hint: 0,0,1,1
+  states:
+    coordinate:
+    - 200
+    - 100
+    rotation: 0
+    state: enabled
+- name: tx_atten
+  id: variable_qtgui_range
+  parameters:
+    label: '''TX attenuation [dB]'''
+    rangeType: float
+    value: '10'
+    start: '0'
+    stop: '89.75'
+    step: '0.25'
+    widget: counter_slider
+    gui_hint: 0,1,1,1
+  states:
+    coordinate:
+    - 360
+    - 100
+    rotation: 0
+    state: enabled
+- name: tx_source
+  id: blocks_file_source
+  parameters:
+    file: tx_file
+    type: complex
+    repeat: 'True'
+  states:
+    coordinate:
+    - 16
+    - 260
+    rotation: 0
+    state: enabled
+- name: pluto_sink
+  id: iio_pluto_sink
+  parameters:
+    type: fc32
+    uri: ''''''
+    frequency: fc
+    samplerate: samp_rate
+    buffer_size: tx_buffer_len
+    cyclic: 'True'
+    attenuation1: tx_atten
+    bandwidth: rf_bw
+    filter_source: '''Auto'''
+    len_tag_key: ''''''
+  states:
+    coordinate:
+    - 260
+    - 240
+    rotation: 0
+    state: enabled
+- name: pluto_source
+  id: iio_pluto_source
+  parameters:
+    type: fc32
+    uri: ''''''
+    frequency: fc
+    samplerate: samp_rate
+    buffer_size: '131072'
+    gain1: '''manual'''
+    manual_gain1: rx_gain
+    quadrature: 'True'
+    rfdc: 'True'
+    bbdc: 'True'
+    bandwidth: rf_bw
+    filter_source: '''Auto'''
+    len_tag_key: packet_len
+  states:
+    coordinate:
+    - 16
+    - 420
+    rotation: 0
+    state: enabled
+- name: isac_radar
+  id: epy_block
+  parameters:
+    _source_code: |
+      """
+      OFDM ISAC radar (embedded Python block for GNU Radio 3.10).
+
+      Input : complex64 baseband stream from the PlutoSDR Source (or a recorded file).
+      Output: one float vector per CPI = Doppler spectrum [dB] (max over the range cells),
+              resampled to n_bins points on [-max_doppler, +max_doppler] for a QT GUI Vector Sink.
+      Message port "detections": one PMT dict per CPI with the OS-CFAR detections
+              (excess range [m], Doppler [Hz], range-sum rate [m/s], SNR [dB]) and the
+              communication result (BER, EVM) of the same waveform.
+
+      The block regenerates the TX buffer from the same YAML configuration (deterministic
+      seed), so it knows the preambles; the payload is decoded blindly (decision-directed
+      reference). Samples that arrive while a CPI is being processed are dropped: this is a
+      live monitor. For measurements use scripts/pluto_capture.py, which records one
+      contiguous CPI from a single kernel buffer.
+      """
+      import os
+      import sys
+      import time
+
+      import numpy as np
+      import pmt
+      from gnuradio import gr
+
+
+      class blk(gr.basic_block):
+          def __init__(self, config_path="../config/indoor.yaml", repo_path="..", cpi_samples=262144,
+                       max_doppler=300.0, n_bins=512, max_excess_range=100.0,
+                       cfo_correction=False, dp_referencing=False):
+              gr.basic_block.__init__(self, name="OFDM ISAC radar", in_sig=[np.complex64],
+                                      out_sig=[(np.float32, int(n_bins))])
+              self.config_path = config_path
+              self.repo_path = repo_path
+              self.cpi = int(cpi_samples)
+              self.n_bins = int(n_bins)
+              self.max_doppler = float(max_doppler)
+              self.max_excess_range = float(max_excess_range)
+              self.cfo_correction = bool(cfo_correction)
+              self.dp_referencing = bool(dp_referencing)
+              self.axis = np.linspace(-self.max_doppler, self.max_doppler, self.n_bins)
+              self.buf = np.zeros(self.cpi, dtype=np.complex64)
+              self.fill = 0
+              self.n_cpi = 0
+              self.message_port_register_out(pmt.intern("detections"))
+
+          def start(self):
+              # heavy set-up here, not in __init__: GRC instantiates the block to discover its ports
+              if self.repo_path and os.path.abspath(self.repo_path) not in sys.path:
+                  sys.path.insert(0, os.path.abspath(self.repo_path))
+              from isac.config import load_config
+              from isac.pipeline import ProcessingOptions
+              from isac.waveform import make_frame
+              self.cfg = load_config(self.config_path)
+              self.cfg.cpi_samples = self.cpi
+              self.frame = make_frame(self.cfg)
+              self.opt = ProcessingOptions(max_excess_range=self.max_excess_range, max_doppler=self.max_doppler,
+                                           cfo_correction=self.cfo_correction, dp_referencing=self.dp_referencing)
+              print(f"[isac] {self.config_path}: CPI {self.cpi} samples = {self.cpi / self.cfg.fs * 1e3:.1f} ms, "
+                    f"Doppler resolution {self.cfg.fs / self.cpi:.2f} Hz", flush=True)
+              return True
+
+          def forecast(self, noutput_items, ninputs):
+              # the block buffers internally: any amount of input is useful
+              return [1] * ninputs
+
+          def general_work(self, input_items, output_items):
+              x = input_items[0]
+              take = min(len(x), self.cpi - self.fill)
+              self.buf[self.fill:self.fill + take] = x[:take]
+              self.fill += take
+              self.consume(0, len(x))            # samples beyond the CPI are dropped (live view)
+              if self.fill < self.cpi:
+                  return 0
+              self.fill = 0
+              self.n_cpi += 1
+              from isac.pipeline import process
+              t0 = time.time()
+              try:
+                  res = process(self.buf, self.frame, self.opt)
+              except Exception as e:             # e.g. TX off: no frame found
+                  print(f"[isac] CPI {self.n_cpi}: processing failed: {e}", flush=True)
+                  output_items[0][0][:] = -200.0
+                  return 1
+              P = res.rd.power
+              valid = res.rd.excess_range >= -0.5 * self.cfg.range_sum_resolution
+              spec = P[valid, :].max(axis=0)
+              spec_db = 10 * np.log10(spec / spec.max() + 1e-20)
+              output_items[0][0][:] = np.interp(self.axis, res.rd.doppler, spec_db).astype(np.float32)
+              msg = pmt.to_pmt({
+                  "cpi": self.n_cpi, "ber": float(res.comm.ber), "evm_db": round(float(res.comm.evm_db), 2),
+                  "sync": round(float(res.sync_metric), 3), "proc_s": round(time.time() - t0, 3),
+                  "detections": [{"excess_range_m": round(d.excess_range, 2), "doppler_hz": round(d.doppler, 2),
+                                  "range_sum_rate_mps": round(d.range_sum_rate, 3), "snr_db": round(d.snr_db, 1)}
+                                 for d in res.detections[:10]],
+              })
+              self.message_port_pub(pmt.intern("detections"), msg)
+              return 1
+    config_path: cfg_path
+    repo_path: '''..'''
+    cpi_samples: cpi
+    max_doppler: max_doppler
+    n_bins: n_bins
+    max_excess_range: '100.0'
+    cfo_correction: 'False'
+    dp_referencing: 'False'
+  states:
+    coordinate:
+    - 330
+    - 420
+    rotation: 0
+    state: enabled
+- name: doppler_display
+  id: qtgui_vector_sink_f
+  parameters:
+    name: '''Doppler spectrum (max over range cells), one update per CPI'''
+    vlen: n_bins
+    x_start: -max_doppler
+    x_step: 2*max_doppler/(n_bins-1)
+    x_axis_label: '''Doppler [Hz]'''
+    y_axis_label: '''power [dB]'''
+    x_units: '''Hz'''
+    y_units: '''dB'''
+    ymin: '-90'
+    ymax: '5'
+    grid: 'True'
+    update_time: '0.10'
+    gui_hint: 1,0,1,2
+    label1: '''Doppler'''
+  states:
+    coordinate:
+    - 650
+    - 400
+    rotation: 0
+    state: enabled
+- name: rx_spectrum
+  id: qtgui_freq_sink_x
+  parameters:
+    type: complex
+    name: '''RX spectrum'''
+    fftsize: '4096'
+    fc: fc
+    bw: samp_rate
+    wintype: window.WIN_BLACKMAN_hARRIS
+    average: '0.2'
+    ymin: '-120'
+    ymax: '0'
+    grid: 'True'
+    update_time: '0.10'
+    gui_hint: 2,0,1,1
+    nconnections: '1'
+  states:
+    coordinate:
+    - 650
+    - 520
+    rotation: 0
+    state: enabled
+- name: mag2
+  id: blocks_complex_to_mag_squared
+  parameters:
+    vlen: '1'
+  states:
+    coordinate:
+    - 330
+    - 640
+    rotation: 0
+    state: enabled
+- name: avg
+  id: blocks_moving_average_xx
+  parameters:
+    type: float
+    length: '100000'
+    scale: 1/100000
+    max_iter: '4000'
+    vlen: '1'
+  states:
+    coordinate:
+    - 520
+    - 640
+    rotation: 0
+    state: enabled
+- name: to_db
+  id: blocks_nlog10_ff
+  parameters:
+    n: '10'
+    k: '0'
+    vlen: '1'
+  states:
+    coordinate:
+    - 720
+    - 650
+    rotation: 0
+    state: enabled
+- name: rx_level
+  id: qtgui_number_sink
+  parameters:
+    name: '''RX level [dBFS] (target -15, peak < -3)'''
+    type: float
+    min: '-80'
+    max: '0'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    nconnections: '1'
+    update_time: '0.20'
+    gui_hint: 2,1,1,1
+    label1: '''mean'''
+    unit1: '''dBFS'''
+    factor1: '1'
+    avg: '0'
+    autoscale: 'False'
+    color1: ("black", "black")
+  states:
+    coordinate:
+    - 900
+    - 640
+    rotation: 0
+    state: enabled
+- name: record
+  id: blocks_file_sink
+  parameters:
+    file: '''rx_live.cf32'''
+    type: complex
+    vlen: '1'
+    unbuffered: 'False'
+    append: 'False'
+  states:
+    coordinate:
+    - 330
+    - 760
+    rotation: 0
+    state: disabled
+- name: print_detections
+  id: blocks_message_debug
+  parameters:
+    en_uvec: 'True'
+  states:
+    coordinate:
+    - 650
+    - 300
+    rotation: 0
+    state: enabled
+connections:
+- - tx_source
+  - '0'
+  - pluto_sink
+  - '0'
+- - pluto_source
+  - '0'
+  - isac_radar
+  - '0'
+- - isac_radar
+  - '0'
+  - doppler_display
+  - '0'
+- - pluto_source
+  - '0'
+  - rx_spectrum
+  - '0'
+- - pluto_source
+  - '0'
+  - mag2
+  - '0'
+- - mag2
+  - '0'
+  - avg
+  - '0'
+- - avg
+  - '0'
+  - to_db
+  - '0'
+- - to_db
+  - '0'
+  - rx_level
+  - '0'
+- - pluto_source
+  - '0'
+  - record
+  - '0'
+- - isac_radar
+  - detections
+  - print_detections
+  - print
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2

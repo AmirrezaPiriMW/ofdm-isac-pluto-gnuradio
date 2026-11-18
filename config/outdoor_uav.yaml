@@ -1,0 +1,23 @@
+# Outdoor UAV scenario: burst capture at 30.72 MS/s. The TX frame is played from the
+# Pluto's on-board cyclic buffer and RX is captured as one contiguous kernel buffer,
+# so USB2 throughput is not a constraint. ~24 MHz occupied bandwidth gives ~12 m
+# range-sum resolution; the 137 ms CPI gives ~7 Hz Doppler resolution.
+ofdm:
+  fc: 2.45e9
+  fs: 30.72e6
+  nfft: 1024
+  ncp: 128
+  n_used_half: 400
+  n_sym_frame: 64
+  n_frames_buffer: 8    # cyclic TX buffer = 8 frames with different payloads
+  modulation: qpsk
+  seed: 1
+  cpi_samples: 4194304  # 2^22 = 136.5 ms; reduce to 2^21 if the buffer allocation fails
+  cp_backoff: 8
+  tx_power_dbm: -5.0   # ASSUMED mean OFDM power: 7.5 dBm (AD9363 max, full-scale tone) - 11.7 dB (OFDM RMS re full scale) - 0 dB TX attenuation; measure in E0
+  tx_gain_dbi: 12.0     # e.g. 2.4 GHz patch / Yagi pointed at the flight area
+  rx_gain_dbi: 12.0
+  noise_figure_db: 6.0
+  direct_path_isolation_db: 25.0
+  adc_bits: 12
+  rx_level_dbfs: -15.0  # set manual RX gain so the total received power is ~ -15 dBFS

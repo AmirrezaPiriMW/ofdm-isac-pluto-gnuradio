@@ -1,0 +1,7 @@
+numpy>=1.21
+scipy>=1.8
+pyyaml>=5.4
+matplotlib>=3.5
+pytest>=7
+# hardware capture only (on Ubuntu see scripts/setup_ubuntu.sh):
+# pyadi-iio>=0.0.17

@@ -1,0 +1,23 @@
+# Indoor demonstration: one PlutoSDR, TX and RX antennas separated by a few metres
+# (bistatic geometry, shared clock). Continuous RX at 4 MS/s fits through USB2;
+# the long CPI gives ~1 Hz Doppler resolution for micro-Doppler of people and fans.
+# Range resolution (~95 m) is NOT useful indoors: targets are separated in Doppler.
+ofdm:
+  fc: 2.45e9            # 2.4 GHz ISM band (stock AD9363 tuning range 325 MHz - 3.8 GHz)
+  fs: 4.0e6
+  nfft: 256
+  ncp: 64
+  n_used_half: 100
+  n_sym_frame: 64
+  n_frames_buffer: 8    # cyclic TX buffer = 8 frames with different payloads
+  modulation: qpsk
+  seed: 1
+  cpi_samples: 4194304  # 2^22 contiguous samples = 1.05 s
+  cp_backoff: 8
+  tx_power_dbm: -15.0   # ASSUMED mean OFDM power: 7.5 dBm (AD9363 max, full-scale tone) - 12.1 dB (OFDM RMS re full scale) - 10 dB TX attenuation; measure in E0
+  tx_gain_dbi: 6.0
+  rx_gain_dbi: 6.0
+  noise_figure_db: 6.0
+  direct_path_isolation_db: 20.0
+  adc_bits: 12
+  rx_level_dbfs: -15.0  # set manual RX gain so the total received power is ~ -15 dBFS
